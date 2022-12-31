@@ -6,15 +6,15 @@
 
 
 int main(void) {
-	
-	DDRB |= (1 << 5);	
-	
+    
+    DDRB |= (1 << 5);
+    
     // Main loop
     while (1) {
-		PORTB |= (1 << 5);
-		_delay_ms(500);
-		PORTB &= ~(1 << 5);
-		_delay_ms(500);
+        PORTB |= (1 << 5);
+        _delay_ms(500);
+        PORTB &= ~(1 << 5);
+        _delay_ms(500);
     }
 }
 
