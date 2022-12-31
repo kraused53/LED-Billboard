@@ -9,55 +9,55 @@ uint8_t DISPLAY_MEM[8*HEIGHT][WIDTH];
 
 /*
  * Name:
- *		MAX7219_clear
+ *      MAX7219_clear
  * Inputs:
- *		None
- *			- void
+ *      None
+ *          - void
  * Return:
- *		None
- *			- void
+ *      None
+ *          - void
  * Description:
- *			Clear the local screen buffer. Does NOT update screen
+ *          Clear the local screen buffer. Does NOT update screen
  *
  */
 void MAX7219_clear(void) {
-	uint8_t row, disp;
+    uint8_t row, disp;
+
+    // Only need two bytes of data at a time
+    uint8_t data[2];
 	
-	// Only need two bytes of data at a time
-	uint8_t data[2];
+    // The pixel data will always be 0
+    data[1] = 0x00;
 	
-	// The pixel data will always be 0
-	data[1] = 0x00;
+    /*** <--- Line 0 of displays ---> ***/
+    // For each row in the display line
+    for(row = 1; row <= 8; row++) {
+        // The first byte of data is the current row
+        data[0] = row;
+        // Activate slave select 0
+        SS0_LOW;
+        // For each display in the line
+        for(disp = 0; disp < WIDTH; disp++) {
+            SPI_write_data(data, 2);
+        }
+        // Deactivate slave select 0
+        SS0_HIGH;
+    }
 	
-	/*** <--- Line 0 of displays ---> ***/
-	// For each row in the display line
-	for(row = 1; row <= 8; row++) {
-		// The first byte of data is the current row
-		data[0] = row;
-		// Activate slave select 0
-		SS0_LOW;
-		// For each display in the line
-		for(disp = 0; disp < WIDTH; disp++) {
-			SPI_write_data(data, 2);
-		}
-		// Deactivate slave select 0
-		SS0_HIGH;
-	}
-	
-	/*** <--- Line 1 of displays ---> ***/
-	// For each row in the display line
-	for(row = 1; row <= 8; row++) {
-		// The first byte of data is the current row
-		data[0] = row;
-		// Activate slave select 1
-		SS1_LOW;
-		// For each display in the line
-		for(disp = 0; disp < WIDTH; disp++) {
-			SPI_write_data(data, 2);
-		}
-		// Deactivate slave select 1
-		SS1_HIGH;
-	}
+    /*** <--- Line 1 of displays ---> ***/
+    // For each row in the display line
+    for(row = 1; row <= 8; row++) {
+        // The first byte of data is the current row
+        data[0] = row;
+        // Activate slave select 1
+        SS1_LOW;
+        // For each display in the line
+        for(disp = 0; disp < WIDTH; disp++) {
+            SPI_write_data(data, 2);
+        }
+        // Deactivate slave select 1
+        SS1_HIGH;
+    }
 }
 
 
@@ -190,7 +190,7 @@ void MAX7219_shift_right(uint8_t wrap) {
 			// Record if there is a bit to be shifted outside the display buffer
 			if(DISPLAY_MEM[row][disp] & 0x01) {
 				carry_next[row] = 0x80;
-				}else {
+			}else {
 				carry_next[row] = 0x00;
 			}
 			
