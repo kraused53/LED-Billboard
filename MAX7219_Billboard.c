@@ -5,7 +5,128 @@
 uint8_t DISPLAY_MEM[8*HEIGHT][WIDTH];
 
 
+/*** <--- MAX7219 Settings ---> ***/
+
+/*
+ * Name:
+ *      MAX7219_init
+ * Inputs:
+ *      None
+ *          - void
+ * Return:
+ *      None
+ *          - void
+ * Description:
+ *          Initialize the MAX7219s for in LED matrix mode.
+ *
+ */
+void MAX7219_init(void) {
+    
+    // Initialize the SPI module
+    SPI_init();
+    
+    
+    /*** <--- Set Decode Mode ---> ***/
+    MAX7219_change_settings(DECODE_MODE, DECODE_MODE_SET);
+    
+    
+    /*** <--- Set Brightness ---> ***/
+    MAX7219_change_settings(INTENSITY, BRIGHTNESS);
+
+     /*** <--- Set Scan Limit ---> ***/
+     // Activate slave select 0
+     MAX7219_change_settings(SCAN_LIMIT, SCAN_LIMIT_SET);     
+
+     /*** <--- Set Display Test ---> ***/
+      MAX7219_change_settings(DISPLAY_TEST, DISPLAY_TEST_SET);
+      
+     /*** <--- Set Display Test ---> ***/
+     MAX7219_change_settings(DISPLAY_TEST, DISPLAY_TEST_SET);
+     
+     // Clear Scree
+     MAX7219_clear();
+     
+     /*** <--- Display On/Off ---> ***/
+     MAX7219_change_settings(SHUT_DOWN, DISPLAY_ON);
+     
+     // Clear Internal Buffer
+     MAX7219_clear_local_buffer();
+     
+     // Update the display
+     MAX7219_update();
+}
+
+
+/*
+ * Name:
+ *      MAX7219_change_setting
+ * Inputs:
+ *      uint8_t addr
+ *          - MAX7219 Internal register address
+ *      uint8_t val
+ *          - Value to be store in the given register
+ * Return:
+ *      None
+ *          - void
+ * Description:
+ *          Clear the local screen buffer. Does NOT update screen
+ *
+ */
+void MAX7219_change_settings(uint8_t addr, uint8_t val) {
+    uint8_t data[2];
+    uint8_t disp;
+
+    data[0] = addr;
+    data[1] = val;
+   
+    // Activate slave select 0
+    SS0_LOW;
+    // For each display
+    for(disp = 0; disp < WIDTH; disp++) {
+        SPI_write_data(data, 2);
+    }
+    // Deactivate slave select 0
+    SS0_HIGH;
+    
+    // Activate slave select 1
+    SS1_LOW;
+    // For each display
+    for(disp = 0; disp < WIDTH; disp++) {
+        SPI_write_data(data, 2);
+    }
+    // Deactivate slave select 1
+    SS1_HIGH;
+}
+
+
 /*** <--- MAX7219 Screen Editing ---> ***/
+
+
+/*
+ * Name:
+ *      MAX7219_clear_local_buffer
+ * Inputs:
+ *      None
+ *          - void
+ * Return:
+ *      None
+ *          - void
+ * Description:
+ *          Clear the local screen buffer. Does NOT update screen
+ *
+ */
+void MAX7219_clear_local_buffer(void) {
+    uint8_t row, disp;
+
+    // For every column
+    for(disp = 0; disp < WIDTH; disp++) {
+        // For ever row in that column
+        for(row = 0; row < (8*HEIGHT); row++) {
+            DISPLAY_MEM[row][disp] = 0x00;
+        }
+    }
+}
+
 
 /*
  * Name:
@@ -17,7 +138,7 @@ uint8_t DISPLAY_MEM[8*HEIGHT][WIDTH];
  *      None
  *          - void
  * Description:
- *          Clear the local screen buffer. Does NOT update screen
+ *          Clear the screen. This function does update the screen
  *
  */
 void MAX7219_clear(void) {
@@ -282,7 +403,7 @@ void MAX7219_shift_up(uint8_t wrap) {
     
     // Save top row of local buffer for future wrapping;
     for(row = 0; row < WIDTH; row++) {
-        hold[row] = DISPLAY_MEM[(8*HEIGHT-1)][row];
+        hold[row] = DISPLAY_MEM[0][row];
     }
     
     // For each row except the bottom one
@@ -300,7 +421,7 @@ void MAX7219_shift_up(uint8_t wrap) {
         for(row = 0; row < WIDTH; row++) {
             DISPLAY_MEM[(8*HEIGHT)-1][row] = hold[row];
         }
-        }else {
+    }else {
         // Fill the bottom row with 0s
         for(row = 0; row < WIDTH; row++) {
             DISPLAY_MEM[(8*HEIGHT)-1][row] = 0x00;
@@ -351,5 +472,32 @@ void MAX7219_shift_down(uint8_t wrap) {
         for(row = 0; row < WIDTH; row++) {
             DISPLAY_MEM[0][row] = 0x00;
         }
+    }
+}
+
+
+/*
+ * Name:
+ *        MAX7219_fill_column
+ * Inputs:
+ *        uint8_t col
+ *            - The column to be filled. Can be between 0 and 8*WIDTH
+ *        uint8_t lvl
+ *            - The level for the column to be filled to. Can be between 0 and 8*HEIGHT
+ * Return:
+ *        None
+ *            - void
+ * Description:
+ *            Fills the given column from the bottom, with a height of lvl.
+ *
+ */
+void MAX7219_fill_column(uint8_t col, uint8_t lvl) {
+    // Check for out of bounds value
+    if((col > 8*WIDTH) || (lvl > 8*HEIGHT)) {
+        return;
+    }
+    
+    for(uint8_t cnt = 0; cnt <= lvl; cnt++) {
+        MAX7219_set_point(col, (8*HEIGHT)-cnt, 1);
     }
 }

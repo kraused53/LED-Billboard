@@ -31,7 +31,7 @@
     #define DECODE_MODE_SET     0x00
     // Set Default Brightness:
     //        There are 15 brightness levels, 0x00->0x0F
-    #define BRIGHTNESS          0x08
+    #define BRIGHTNESS          0x05
     // Scan Limit Setting:
     //        0x00: Display only digit 0
     //        0x01: Display only digits 0 & 1
@@ -53,13 +53,10 @@
     /*** <--- Function Prototypes ---> ***/
     // MAX7219 Settings
     void MAX7219_init(void);
-    void MAX7219_set_decode_mode(uint8_t val);
-    void MAX7219_set_brightness(uint8_t val);
-    void MAX7219_set_scan_limit(uint8_t val);
-    void MAX7219_set_shutdown(uint8_t val);
-    void MAX7219_set_display_test(uint8_t val);
+    void MAX7219_change_settings(uint8_t addr, uint8_t val);
 
     // MAX7219 Screen Editing
+    void MAX7219_clear_local_buffer(void);
     void MAX7219_clear(void);
     void MAX7219_update(void);
     void MAX7219_set_point(uint8_t x, uint8_t y, uint8_t val);
@@ -67,5 +64,6 @@
     void MAX7219_shift_left(uint8_t wrap);
     void MAX7219_shift_up(uint8_t wrap);
     void MAX7219_shift_down(uint8_t wrap);
+    void MAX7219_fill_column(uint8_t col, uint8_t lvl);
 
 #endif
